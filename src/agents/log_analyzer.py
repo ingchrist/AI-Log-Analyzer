@@ -4,6 +4,18 @@ from ..models.factory import create_model
 from ..tools import get_all_tools, requires_approval
 from ..utils.response import extract_response_text
 from ..config import Config
+import json
+
+
+def _action_token(tool_name: str, args: dict) -> str:
+    """Stable, human-readable token for a (tool_name, args) pair.
+
+    Used in blocked-action messages so the user can confirm a specific action
+    by echoing the token back (e.g. 'confirm restart_kubernetes_pod:backend-pod').
+    """
+    args_str = json.dumps(args, sort_keys=True, separators=(",", ":"))
+    return f"{tool_name}:{args_str}"
+
 
 class LogAnalyzerAgent:
     def __init__(self, incident_context: str = ""):
@@ -22,14 +34,12 @@ class LogAnalyzerAgent:
         ])
 
     def process_query(self, user_input: str, chat_history: list) -> str:
-        # Build a set of approved (tool_name, frozen_args) pairs from this message.
-        # A bare yes/confirm approves any single pending action in this turn.
         user_lower = user_input.lower().strip()
-        global_confirm = user_lower in ["yes", "y", "confirm"]
 
-        # Track per-call approvals keyed by tool_call_id so each destructive
-        # action must be individually authorized.
-        approved_ids: set = set()
+        # approved_tokens: set of _action_token strings the user has confirmed.
+        # Populated when the user replies with 'yes'/'confirm' (approves all
+        # pending actions in that turn) or includes a specific token string.
+        approved_tokens: set = set()
 
         messages = self.prompt.format_messages(chat_history=chat_history, input=user_input)
         response = self.llm.invoke(messages)
@@ -38,24 +48,31 @@ class LogAnalyzerAgent:
             if not getattr(response, "tool_calls", None):
                 return extract_response_text(response)
 
+            # Build token→call_id map for all approval-required calls this round.
+            pending: dict[str, str] = {
+                _action_token(tc["name"], tc["args"]): tc["id"]
+                for tc in response.tool_calls
+                if requires_approval(tc["name"])
+            }
+
+            # Global 'yes'/'confirm' approves every pending action in this turn.
+            if user_lower in ("yes", "y", "confirm"):
+                approved_tokens.update(pending.keys())
+
+            # Also approve any pending token that appears verbatim in the message.
+            for token in pending:
+                if token in user_input:
+                    approved_tokens.add(token)
+
             tool_msgs = []
-            pending_approvals = [
-                tc for tc in response.tool_calls
-                if requires_approval(tc["name"]) and tc["id"] not in approved_ids
-            ]
-
-            # If user sent a global confirm and there is exactly one pending
-            # destructive action, approve it automatically.
-            if global_confirm and len(pending_approvals) == 1:
-                approved_ids.add(pending_approvals[0]["id"])
-                global_confirm = False  # consume the confirmation
-
             for tc in response.tool_calls:
-                if requires_approval(tc["name"]) and tc["id"] not in approved_ids:
+                token = _action_token(tc["name"], tc["args"])
+                if requires_approval(tc["name"]) and token not in approved_tokens:
                     res = (
-                        f"Action '{tc['name']}' with args {tc['args']} is BLOCKED "
-                        f"and requires explicit user confirmation. "
-                        f"Please reply 'yes' or 'confirm' to authorize this specific action."
+                        f"Action '{tc['name']}' is BLOCKED and requires confirmation.\n"
+                        f"To approve only this action, reply with:\n"
+                        f"  confirm {token}\n"
+                        f"Or reply 'yes' / 'confirm' to approve all pending actions."
                     )
                 else:
                     tool_func = next(
