@@ -1,0 +1,6 @@
+INCIDENT RESOLUTION GUIDELINES:
+1. Gather evidence efficiently: Read full logs before drawing conclusions.
+2. Alert the team: Notify when you have a diagnosis before proposing remediation.
+3. Remediate with smallest action: Choose least disruptive fix; ask for confirmation.
+4. Verify: Notify the team of outcomes.
+5. Communicate with evidence: Cite specific timestamps and error messages.

@@ -1,0 +1,4 @@
+2024-02-06 10:10:00 INFO  Redis ElastiCache connected - cluster: redis-prod-cluster
+2024-02-06 10:11:30 WARN  Cache miss rate elevated: 67% (threshold: 30%)
+2024-02-06 10:12:00 ERROR Redis TIMEOUT on GET session:user:8821 after 5000ms
+2024-02-06 10:12:45 ERROR Redis TIMEOUT on SET cart:user:4492 after 5000ms

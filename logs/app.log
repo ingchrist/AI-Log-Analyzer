@@ -1,0 +1,7 @@
+2024-02-06 10:12:45 ERROR [HikariPool] Connection is not available, request timed out after 30000ms
+2024-02-06 10:12:46 ERROR [HikariPool] Connection is not available, request timed out after 30000ms
+2024-02-06 10:13:00 WARN  [HikariPool] Pool stats (total=150, active=150, idle=0, waiting=23)
+2024-02-06 10:13:30 FATAL DATABASE CONNECTION EXHAUSTION - Active: 150/150, Waiting: 47
+2024-02-06 10:13:31 ERROR [SpringApplication] Application run failed - Cannot acquire DB connection
+2024-02-06 10:14:00 ERROR [HealthCheck] Database health check FAILED - pod: backend-pod-7d9f8b-xk2lp
+2024-02-06 10:14:15 INFO  [RDS] rds-mysql-prod-01 CPU: 94% | Connections: 150/150 | Read IOPS: 4200
