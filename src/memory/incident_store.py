@@ -1,6 +1,9 @@
 import json
+import logging
 from pathlib import Path
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 class IncidentStore:
     def __init__(self, storage_dir: str):
@@ -11,7 +14,20 @@ class IncidentStore:
     def _load(self):
         if not self.path.exists():
             return []
-        return json.loads(self.path.read_text())
+        try:
+            return json.loads(self.path.read_text())
+        except (json.JSONDecodeError, ValueError) as e:
+            corrupt_path = self.path.with_suffix(self.path.suffix + ".corrupt")
+            logger.error(
+                "Failed to parse incident store at %s: %s. "
+                "Moving to %s for inspection.",
+                self.path, e, corrupt_path
+            )
+            try:
+                self.path.rename(corrupt_path)
+            except OSError as rename_err:
+                logger.warning("Could not rename corrupt file: %s", rename_err)
+            return []
 
     def add(self, **kwargs):
         incident = {"timestamp": datetime.now().isoformat(), **kwargs}

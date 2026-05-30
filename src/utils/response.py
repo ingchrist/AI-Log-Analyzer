@@ -4,5 +4,11 @@ def extract_response_text(response) -> str:
         if isinstance(content, str):
             return content.strip()
         if isinstance(content, list):
-            return '\n'.join([b['text'] if isinstance(b, dict) else str(b) for b in content]).strip()
+            parts = []
+            for b in content:
+                if isinstance(b, dict):
+                    parts.append(b.get('text', str(b)))
+                else:
+                    parts.append(str(b))
+            return '\n'.join(parts).strip()
     return str(response).strip()

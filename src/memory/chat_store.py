@@ -13,7 +13,7 @@ class ChatStore:
             return []
         try:
             return json.loads(self.path.read_text())["messages"]
-        except:
+        except (OSError, IOError, json.JSONDecodeError, KeyError):
             return []
 
     def save(self, messages: list):

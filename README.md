@@ -25,7 +25,7 @@ The system monitors a three-tier AWS application:
 - **Cache:** Redis ElastiCache
 - **Frontend:** CloudFront + S3
 
-```
+```text
 app.py (Streamlit UI)
 │
 ├── src/agents/log_analyzer.py    ← ReAct orchestration loop
@@ -108,7 +108,7 @@ To approve a blocked action, simply reply with **`yes`**, **`y`**, or **`confirm
 
 ## 💬 Example Queries
 
-```
+```text
 "List available log files"
 "Analyze app.log and tell me what's wrong"
 "What caused the database connection exhaustion?"
@@ -120,7 +120,7 @@ To approve a blocked action, simply reply with **`yes`**, **`y`**, or **`confirm
 
 ## 📁 Project Structure
 
-```
+```text
 AI-Log-Analyzer/
 ├── app.py                  # Main Streamlit application
 ├── system_prompt.txt       # Agent persona and instructions

@@ -72,7 +72,7 @@ if prompt := st.chat_input("Ask about logs, incidents, or type 'yes' to confirm 
                 else AIMessage(content=m["content"])
                 for m in st.session_state.messages[:-1]
             ]
-            response = st.session_state.agent.process_query(prompt, history)
+            response = st.session_state.agent.process_query(prompt, history)  # callbacks removed
         st.write(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.session_state.chat_store.save(st.session_state.messages)
